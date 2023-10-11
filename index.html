@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>Hello, world!</title>
+
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta name="description" content="" />
+
+  <link rel="stylesheet" type="text/css" href="style.css" />
+
+  <link rel="icon" href="favicon.png">
+
+</head>
+
+<body>
+  <h1>Breadth vs Depth Search</h1>  
+  <canvas id="myCanvas" width="400" height="400" ></canvas>
+  <div id = "buttons" style="margin: auto; padding: 4px;">
+    <button id="depth">Depth</button>
+    <button id="breadth">Breadth</button>
+  </div>
+  <h3>Depth Search</h3>
+  <p>Depth search utilizes a Stack object, prescribing to first in first out. For each node its neighbors will first be added with one of its neighbors also being the first removed.</p>  
+  <img src = "https://upload.wikimedia.org/wikipedia/commons/e/e1/Stack_%28data_structure%29_LIFO.svg">
+  <br>
+  <h3>Breadth Search</h3>
+  <p>Breadth search utilizes a Queue object, prescribing to last in last out. For each node its neighbors will be added with them all being visited before further subNodes.</p>  
+  <img src = "https://upload.wikimedia.org/wikipedia/commons/7/76/Data_queue.svg" style="height: 70%">
+
+
+<script src="app.js"></script>
+</html>
