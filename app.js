@@ -138,8 +138,7 @@ class Board {
         this.turn();  
     }
 
-    turn() {
-        
+    turn() { 
         if(this.finNode.isExplored) {
             this.searchOver = true;
             this.pathFound = true;
