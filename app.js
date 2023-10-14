@@ -10,17 +10,21 @@ class Canvas {
         this.context.fillRect(x * this.pixelSize + 1, y * this.pixelSize + 1, this.pixelSize - 1, this.pixelSize - 1);
         
     }
-
 }
 
 const globCan = new Canvas();
 const dButton = document.getElementById("depth");
 const bButton = document.getElementById("breadth");
+const dMButton = document.getElementById("depth_map");
+const bMButton = document.getElementById("breadth_map");
+
+
 
 function printBoard(board) {
+    console.log("printing board")
     const map = board.map;
-    for(let i =0; i <map.length; i++) {
         let line = "";
+        for(let i =0; i <map.length; i++) 
         for(var j = 0; j<map[i].length; j++) {
             let color = "";
             if(map[i][j] == board.startNode) {
@@ -44,16 +48,16 @@ function printBoard(board) {
                 color = "yellow";
             }
             globCan.updatePixel(j, i, color);
+            
         }
-        console.log(line);
-    }
 }
 
-function PrintPath(board, nodes) {
+function printPath(board, nodes) {
     const map = board.map
     for(let i =0; i <map.length; i++) {
         let line = "";
         for(var j = 0; j<map[i].length; j++) {
+            let color = "";
             if(map[i][j] == board.startNode) {
                  line += "[s]";
                  color = "green";
@@ -82,7 +86,6 @@ function PrintPath(board, nodes) {
         }
         console.log(line);
     }
-    console.log()
 }
 
 class Board {
@@ -103,16 +106,19 @@ class Board {
     }
 
     async runAlgo() {
-        while(this.searchOver == false) {
-            const timeOut = (secs) => new Promise((res) => setTimeout(res, secs * 1000));
-            await timeOut(.5);
-            this.#updateBoard();
+        console.log("algo been run");
+        while(this.searchOver == false) {           
+                this.turn();
+                const timeOut = (secs) => new Promise((res) => setTimeout(res, secs * 1000));
+                await timeOut(.1);
+                printBoard(this);
             }
-            
-        if(this.pathFound)
-            this.#computePath();
-            bButton.disabled = false;
-            dButton.disabled = false;
+            if(this.pathFound)
+                this.#computePath();
+        bButton.disabled = false;
+        dButton.disabled = false;
+        dMButton.disabled = curM != 'b';
+        bMButton.disabled = curM != 'd';
     }
 
     #computePath() {
@@ -120,11 +126,9 @@ class Board {
         let node = this.finNode;
         while(node.parent != null) {
             node = node.parent;
-            console.log(node);
             nodes.add(node);   
         }
-
-        PrintPath(this, nodes);
+        printPath(this, nodes);
     }
 
     #firstUpdate() {
@@ -134,43 +138,55 @@ class Board {
         printBoard(this);
     }
 
-    #updateBoard() {
-        this.turn();  
+    reset() {
+        resetBoard(this.map);
+        this.searchOver = false;
+        this.pathFound = false;
+        this.startNode = this.map[this.start.y][this.start.x];
+        this.finNode = this.map[this.finish.y][this.finish.x];
+        this.#queue = [];
+        this.#curNode = this.startNode;
+        this.#queue.push(this.startNode);
+        this.#firstUpdate();
+        this.#calcNodeBorders();
     }
 
     turn() { 
         if(this.finNode.isExplored) {
             this.searchOver = true;
             this.pathFound = true;
+            this.#computePath();
+            return;
         } else if(this.#queue.length == 0) {
             this.searchOver = true;
             this.pathFound = false;
         } else {
-            this.#curNode = this.#queue.pop();
+            if(this.algo == "depth")    
+                this.#curNode = this.#queue.pop();
+            else {
+                console.log(this.#queue);
+                console.log(this.#curNode.getPos())
+                if(this.#curNode.parent != null)
+                    console.log(this.#curNode.parent.getPos());
+                this.#curNode = this.#queue.shift();
+            }
             for(const n of this.#curNode.neighbors) {
                 if(!n.isExplored) {
-                    n.isExplored = true;
-                    n.parent = this.#curNode;
-                    console.log(this.algo)
-                    if(this.algo == "depth")
-                        this.#queue.push(n);                    
-                    else
-                        this.#queue.unshift(n);                                     
+                        n.isExplored = true;
+                        n.parent = this.#curNode;
+                        this.#queue.push(n);       
                     }
             }
             let past = this.#curNode;
-            console.log(this.#queue);
-           // this.#curNode = this.#queue.pop();
-            console.log(this.#curNode);
-            console.log(this.#curNode.neighbors);
         }
-        printBoard(this);
     }
 
     #calcNodeBorders() {   
         for (let i = 0; i < this.map.length; i++)
             for (let j = 0; j < this.map[0].length; j++) {
                 if(this.map[i][j] != null) {
+                    this.map[i][j].x = j;
+                    this.map[i][j].y = i;
                     if (i != 0)
                         if (this.map[i - 1][j] != null)
                             this.map[i][j].addNeighbor(this.map[i - 1][j]);
@@ -195,10 +211,17 @@ class Node {
         this.parent = null;
         this.inPath = false;
         this.isExplored = false;
+        this.x = -1;
+        this.y = -1;
     }
 
     addNeighbor(node) {
         this.neighbors.push(node);
+    }
+
+    //Mostly for debugging errors with search and checking node borders
+    getPos() {
+        return "x: " + this.x + ",y: " + this.y;
     }
 }
 
@@ -222,22 +245,49 @@ function resetBoard(map) {
                 map[i][j] = new Node();
 }
 
-printBoard(new Board(map1, {x: 0,y: 0}, {x:8, y:6}, ""));
+const depthMap = new Board(map1, {x: 0,y: 0}, {x:8, y:6}, "");
+const breadthMap = new Board(map1, {x: 0,y: 0}, {x:0, y:5}, "");
+
 
 dButton.onclick = function() {
-    bButton.disabled = true;
-    dButton.disabled = true;
-    resetBoard(map1);
-    globCan.context.clearRect(0, 0, globCan.canvas.width, globCan.canvas.height);
-    let board = new Board(map1, {x: 0,y: 0}, {x:8, y:6}, "depth");
-    board.runAlgo();
+    resOnClick("depth");
 }
 
 bButton.onclick = function() {
+    resOnClick("breadth");
+}
+
+dMButton.onclick = function() {
+    curMap = depthMap;
+    curM = 'd';
+    curMap.reset();
+    printBoard(curMap);
+    dMButton.disabled = true;
+    bMButton.disabled = false;
+}
+
+bMButton.onclick = function() {
+    curMap = breadthMap;
+    curM = 'b';
+    curMap.reset();
+    printBoard(curMap);
+    dMButton.disabled = false;
+    bMButton.disabled = true;
+}
+
+dMButton.onclick();
+
+printBoard(curMap);
+
+function resOnClick(algo) {
     bButton.disabled = true;
     dButton.disabled = true;
-    resetBoard(map1);
+    dMButton.disabled = true;
+    bMButton.disabled = true;
     globCan.context.clearRect(0, 0, globCan.canvas.width, globCan.canvas.height);
-    let board = new Board(map1, {x: 0,y: 0}, {x:8, y:6}, "breadth");
-    board.runAlgo();
+    curMap.reset();
+    curMap.algo = algo;
+    curMap.runAlgo();
 }
+
+

@@ -3,7 +3,7 @@
 }
 
 body {
-    margin: 40px auto 0 auto;
+    margin: 40px auto 0px auto;
     display: flex;
     flex-direction: column;
     padding: 0px 10% 0 10%;
@@ -12,7 +12,14 @@ body {
 h1 {
     text-align: center;
 }
+
 #myCanvas {
     border:1px solid #000000;
     margin: auto;
+    padding: 0;
+    background-color: grey
+}
+
+#buttons {
+    margin: auto; padding: 4px;
 }
